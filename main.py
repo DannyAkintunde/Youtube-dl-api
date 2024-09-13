@@ -24,7 +24,7 @@ setup_logging()
 
 logger= logging.getLogger(__name__)
 
-app = Flask(__name__, threaded=True)
+app = Flask(__name__)
 
 DEBUG = os.environ.get("DEBUG", True)
 AUTH = os.environ.get("AUTH", False)
