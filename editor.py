@@ -1,8 +1,9 @@
-import subprocess
 import os
 import logging
-from languagecodes import iso_639_alpha3
 import shutil
+import subprocess
+from languagecodes import iso_639_alpha3
+from settings import CODECS
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ def combine_video_and_audio(video_path,audio_path,temp_path):
       '-i', video_path,
       '-i', audio_path,
       '-c:v', 'copy',
-      '-c:a', 'aac',
+      '-c:a', CODECS[1],
       '-preset', 'fast',
       '-tune', 'film',
       #'-strict', 'experimental',
