@@ -7,7 +7,7 @@ DEBUG = os.environ.get("DEBUG", "True") == "True"
 AUTH = os.environ.get("AUTH", "False") == "True"
 
 #fill if auth is true
-ACCESS_TOKEN = os.environ.get("ACCESS_TOKEN")
+ACCESS_TOKEN =  os.environ.get("ACCESS_TOKEN")
 REFRESH_TOKEN = os.environ.get("REFRESH_TOKEN")
 EXPIRES = os.environ.get("EXPIRES")
 VISITOR_DATA = os.environ.get("VISITOR_DATA")
@@ -25,4 +25,4 @@ TEMP_DIR = 'temp_files'
 AUTH_DIR = 'auth'
 AUTH_FILE_NAME = 'temp.json'
 # CODECS: List of supported codecs. Defaults to "avc1,acc" if not set, split into a tuple.
-CODECS = tuple(os.environ.get("CODECS", "avc1,acc").split(","))
+CODECS = tuple(os.environ.get("CODECS", "avc1,aac").split(","))

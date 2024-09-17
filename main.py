@@ -28,11 +28,13 @@ setup_logging()
 logger= logging.getLogger(__name__)
 
 app = Quart(__name__)
+
 if AUTH:
-    os.makedirs(TEMP_DIR, exist_ok=True)
-    os.makedirs(AUTH_DIR, exist_ok=True)
-    AUTH_FILE_PATH = os.path.join(AUTH_DIR,AUTH_FILE_NAME)
-    write_creds_to_file(ACCESS_TOKEN, REFRESH_TOKEN, EXPIRES, VISITOR_DATA, PO_TOKEN, AUTH_FILE_PATH)
+      os.makedirs(TEMP_DIR, exist_ok=True)
+      os.makedirs(AUTH_DIR, exist_ok=True)
+      AUTH_FILE_PATH = os.path.join(AUTH_DIR,AUTH_FILE_NAME)
+      logger.info(f"auth file path {AUTH_FILE_PATH}")
+      write_creds_to_file(ACCESS_TOKEN, REFRESH_TOKEN, EXPIRES, VISITOR_DATA, PO_TOKEN, AUTH_FILE_PATH)
 
 bitrate_regrex = '\d{2,3}kbps'
 resolution_regrex = '\d{3,}p'
@@ -376,7 +378,8 @@ def clear_temp_directory():
 
 if __name__ == '__main__':
     if not DEBUG:
-      scheduler = BackgroundScheduler()
-      scheduler.add_job(clear_temp_directory, "interval", days=1)
-      scheduler.start()
+      #scheduler = BackgroundScheduler()
+      #scheduler.add_job(clear_temp_directory, "interval", days=1)
+      #scheduler.start()
+      pass
     app.run(debug=DEBUG)

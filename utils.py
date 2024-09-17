@@ -154,13 +154,14 @@ def delete_file_after_delay(file_path, delay):
 
 
 def write_creds_to_file(access_token, refresh_token, expires, visitor_data, po_token, file_path):
-    if not os.path.isfile(file_path): return
+    if os.path.exists(file_path): return
     data = {
         "access_token": access_token,
         "refresh_token": refresh_token,
-        "expires": expires,
+        "expires": int(expires),
         "visitorData": visitor_data,
         "po_token": po_token
     }
     with open(file_path, 'w') as file:
+        logger.info("writing creds")
         json.dump(data, file, indent=2)
