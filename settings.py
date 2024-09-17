@@ -11,7 +11,7 @@ ACESS_TOKEN = os.environ.get("ACESS_TOKEN")
 REFRESH_TOKEN = os.environ.get("REFRESH_TOKEN")
 EXPIRES = os.environ.get("EXPIRES")
 VISITOR_DATA = os.environ.get("VISITOR_DATA")
-PO_TOKEN = os.environ.get("VISITOR_DATA")
+PO_TOKEN = os.environ.get("PO_TOKEN")
 
 # MAX_DOWNLOAD_SIZE: Maximum size (in bytes) allowed for downloads. Defaults to 2 GB if not set.
 MAX_DOWNLOAD_SIZE = int(os.environ.get("MAX_SIZE", 2_147_483_648))
