@@ -28,13 +28,9 @@ def get_avaliable_bitrates(yt):
 def get_avaliable_captions(yt):
     return sorted(remove_duplicates(filter(lambda x: x is not None, [caption.code for caption in yt.captions])), key= lambda char: char,reverse=True)
 
-def filter_stream_by_codec(streams, codec, mode="video"):
-    if mode.lower() == "video":
-      return [stream  for stream in streams if codec in stream.video_codec]
-    elif mode.lower() == "audio":
-      return [stream for stream in streams if codec in stream.audio_codec]
-    else:
-      return []
+def filter_stream_by_codec(streams, codec):
+    return [stream  for stream in streams if codec in stream.video_codec]
+    
 
 
 def is_valid_youtube_url(url):
