@@ -3,6 +3,7 @@ RUN git clone https://github.com/DannyAkintunde/YouTube-DL-api /root/app
 WORKDIR /root/app/
 COPY install.sh .
 RUN chmod +x /install.sh
+COPY requirements.txt .
 RUN python -m pip install -r requirements.txt
 COPY . .
 EXPOSE 5000
