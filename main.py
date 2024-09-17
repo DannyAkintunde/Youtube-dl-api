@@ -1,19 +1,22 @@
-from flask import Flask, request, jsonify, url_for, send_file
+from quart import Quart, request, jsonify, url_for, send_file
 from pytubefix import YouTube, Search
 from pytubefix.cli import on_progress
-from pytubefix.exceptions import AgeRestrictedError, LiveStreamError, MaxRetriesExceeded, MembersOnly, VideoPrivate, VideoRegionBlocked, VideoUnavailable
+from pytubefix.exceptions import AgeRestrictedError, LiveStreamError, MaxRetriesExceeded, MembersOnly, VideoPrivate, VideoRegionBlocked, VideoUnavailable, RegexMatchError
 from apscheduler.schedulers.background import BackgroundScheduler
 from editor import combine_video_and_audio, add_subtitles
+from utils import remove_duplicates, get_avaliable_resolutions, get_avaliable_bitrates, get_avaliable_captions, is_valid_youtube_url, get_info, download_content, get_captions, delete_file_after_delay
+from settings import DEBUG, AUTH, MAX_DOWNLOAD_SIZE, TEMP_DIR, EXPIRATION_DELAY
 import re
 import os
 import time
 import threading
 import logging
+import asyncio
 
 def setup_logging():
     logging.basicConfig(
         level=logging.DEBUG,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        #format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
             logging.FileHandler('app.log'),
             logging.StreamHandler()
@@ -24,113 +27,18 @@ setup_logging()
 
 logger= logging.getLogger(__name__)
 
-app = Flask(__name__)
+app = Quart(__name__)
 
-DEBUG = os.environ.get("DEBUG", True)
-AUTH = os.environ.get("AUTH", False)
-TEMP_DIR = 'temp_files'  # Directory to store temporary files (videos,audios e.t.c)
 os.makedirs(TEMP_DIR, exist_ok=True)
 
-bitrate_regrex = '\d{2,}kbps'
+bitrate_regrex = '\d{2,3}kbps'
 resolution_regrex = '\d{3,}p'
+lang_code_regrex = '^((a\.)?[a-z]{2})(-[A-Z]{2})?$'
 
-def remove_duplicates(items):
-  return list(set(items))
-  
 
-def get_avaliable_resolutions(yt):
-    return sorted(remove_duplicates(filter(lambda x: x is not None, [stream.resolution for stream in yt.streams.filter(file_extension='mp4', adaptive=True)])), key= lambda char: int(char[:-1]),reverse=True)
-
-def get_avaliable_bitrates(yt):
-    return sorted(remove_duplicates(filter(lambda x: x is not None, [stream.abr for stream in yt.streams.filter(only_audio=True)])), key= lambda char: int(char[:-4]),reverse=True)
-
-def get_info(yt):
-    try:
-        video_info = {
-            "id": yt.video_id,
-            "title": yt.title,
-            "author": yt.author,
-            "length": yt.length,
-            "views": yt.views,
-            "resolutions": get_avaliable_resolutions(yt),
-            "bitrates": get_avaliable_bitrates(yt),
-            "watch_url": yt.watch_url,
-            "keywords": yt.keywords,
-            "channel_id": yt.channel_id,
-            "channel_url": yt.channel_url,
-            "description": yt.description,
-            "publish_date": yt.publish_date,
-        }
-        return video_info, None
-    except Exception as e:
-        logger.error(f"Error getting video info: {e}")
-        return None, str(e)
-
-def download_content(url, resolution="360p", bitrate="", content_type="video"):
-    try:
-        yt = YouTube(url, use_oauth=AUTH, allow_oauth_cache=True, on_progress_callback = on_progress)
-        if content_type.lower() == "video":
-            if resolution:
-                stream = yt.streams.filter(file_extension='mp4',adaptive=True, resolution=resolution).first()
-            else:
-                stream = yt.streams.filter(file_extension='mp4', adaptive=True).get_highest_resolution()
-            if stream:
-                video_file = stream.download(output_path=TEMP_DIR)
-                return video_file, None
-            else:
-                available_resolutions = get_avaliable_resolutions(yt)
-                return None, f"Video with the specified resolution not found. Avaliable resolutions are: {available_resolutions}"
-        elif content_type.lower() == "audio":
-            if bitrate:
-              stream = yt.streams.filter(only_audio=True, abr=bitrate).first()
-            else:
-              stream = yt.streams.get_audio_only()
-            if stream:
-                audio_file = stream.download(output_path=TEMP_DIR, mp3=True)
-                return audio_file, None
-            else:
-                available_bitrates = get_avaliable_bitrates(yt)
-                None, f"Audio stream with the specified bitrate not found. Avaliable bitrates are: {available_bitrates}"
-        else:
-            return None, "Invalid content type specified. Use 'video' or 'audio'."
-        
-    except (AgeRestrictedError, LiveStreamError, MaxRetriesExceeded, MembersOnly, VideoPrivate, VideoRegionBlocked, VideoUnavailable) as e:
-        logger.error(f"Error downloding {content_type} content: {e}")
-        return None, e.error_string
-
-def get_captions(url,lang):
-    try:
-      yt = YouTube(url, use_oauth=AUTH, allow_oauth_cache=True,on_progress_callback=on_progress)
-      caption = yt.captions.get_by_language_code(lang)
-      lang = caption.lang
-      if not caption:
-        caption = yt.captions.get_by_language_code(f"a.{lang}")
-        lang = f"Autogenerated {caption.lang}"
-      if caption:
-        caption = yt.captions.get_by_language_code(lang)
-        caption.save_captions(os.path.join(TEMP_DIR, f"{yt.title}.srt"))
-        caption_file = url_for('get_file', filename=f"{yt.title}.srt", _external=True)
-        return {"lang": lang, "captions": caption.generate_srt_captions(), "file":caption_file, "path":os.path.join(TEMP_DIR, f"{yt.title}.srt")}, None
-      else:
-        return None, "No captions found"
-    except (AgeRestrictedError, LiveStreamError, MaxRetriesExceeded, MembersOnly, VideoPrivate, VideoRegionBlocked, VideoUnavailable) as e:
-      logger.error(f"Error gettinh caption content: {e}")
-      return None, e.error_string
-
-def is_valid_youtube_url(url):
-    #pattern = r"^(https?://)?(www\.)?youtube\.com/watch\?v=[\w-]+(&\S*)?$"
-    try:
-      YouTube(url, use_oauth=AUTH, allow_oauth_cache=True)
-      return True
-    except VideoUnavailable:
-      return False
-      #return re.match(pattern, url) is not None
-
-def delete_file_after_delay(file_path, delay):
-    time.sleep(delay)
-    if os.path.exists(file_path):
-        logger.info("Deleting temp file " + file_path)
-        os.remove(file_path)
+@app.route("/ping")
+async def handle_ping():
+    return jsonify({"message":"pong"}), 200
 
 def parse_search_results(results):
     parsed_results = []
@@ -141,39 +49,49 @@ def parse_search_results(results):
           parsed_results.append(video_info)
     return parsed_results
 
+
 @app.route('/search', methods=['GET'])
-def search():
-    data = request.get_json()
+async def search():
+    data = request.args or await request.get_json()
+    if not data:
+      return jsonify({"error": "No prameters passed"}), 500
     q = data.get('q') or data.get('query')
     
     if not q:
       return jsonify({"error": "Missing 'query'/'q' parameter in the request body."}), 400
     
-    s = Search(q)
-    results = s.videos
-    print(request,s)
-    print(results)
-    
     try:
+        s = Search(q)
+        results = s.results
         parsed_results = parse_search_results(results)
         print(parsed_results)
         if parsed_results and len(parsed_results) > 0:
           res = {
             "search": q,
+            "search_suggestions": s.completion_suggestions,
             "lenght": len(parsed_results),
             "results": parsed_results
           }
           return jsonify(res), 200
         else:
           return jsonify({"error":"No results found."}), 400
-    except Exception as error:
-      logger.error(f"Error searching query: {error}")
-      return jsonify({"error": "An error occored please report this to the devloper."}), 500
+    except (AgeRestrictedError, LiveStreamError, MaxRetriesExceeded, MembersOnly, VideoPrivate, VideoRegionBlocked, VideoUnavailable) as e:
+      logger.error(f"Error geting videos info: {e}")
+      return jsonify({"error": e.error_string}), 500
+    except RegexMatchError as e:
+        logger.error(f"an error occored fetching url: {e}")
+        return jsonify({"error": "Invalid YouTube URL."}), 400
+    except Exception as e:
+        logger.error(f"Error searching query: {e}")
+        return jsonify({"error": f"An error occored please report this to the devloper.: {e}"}), 500
 
 @app.route('/info', methods=['GET'])
-def video_info():
-    data = request.get_json()
-    url = data.get('url')
+async def video_info():
+    data = request.args or await request.get_json()
+    if not data:
+      return jsonify({"error": "No prameters passed"}), 500
+    
+    url =  data.get('url')
     
     if not url:
       return jsonify({"error": "Missing 'url' parameter in the request body."}), 400
@@ -182,7 +100,7 @@ def video_info():
       return jsonify({"error": "Invalid YouTube URL."}), 400
     
     try:
-      yt = YouTube(url, use_oauth=AUTH, allow_oauth_cache=True,on_progress_callback = on_progress)
+      yt = YouTube(url, use_oauth=AUTH, allow_oauth_cache=True)
       video_info, error = get_info(yt)
       
       if video_info:
@@ -192,12 +110,21 @@ def video_info():
     except (AgeRestrictedError, LiveStreamError, MaxRetriesExceeded, MembersOnly, VideoPrivate, VideoRegionBlocked, VideoUnavailable) as e:
       logger.error(f"Error geting video info: {e}")
       return jsonify({"error": e.error_string}), 500
+    except RegexMatchError as e:
+        logger.error(f"an error occored fetching url: {e}")
+        return jsonify({"error": "Invalid YouTube URL."}), 400
+    except Exception as e:
+        logger.error(f"An error occored searching content:{e}")
+        return jsonify({"error": f"Server error : {e}"}), 500
+      
 
 @app.route('/download', methods=['POST'])
-def download_highest_avaliable_resolution():
-    data = request.get_json()
+async def download_highest_avaliable_resolution():
+    data = await request.get_json()
     url = data.get('url')
-    subtitle = data.get('subtitle') or data.grt('caption')
+    subtitle = data.get('subtitle') or data.get('caption')
+    burn = subtitle.get('burn')
+    lang = subtitle.get('lang')
     
     if not url:
         return jsonify({"error": "Missing 'url' parameter in the request body."}), 400
@@ -205,74 +132,116 @@ def download_highest_avaliable_resolution():
     if not is_valid_youtube_url(url):
         return jsonify({"error": "Invalid YouTube URL."}), 400
     
-    video_file, error_message = download_content(url, resolution=None)
-    if not error_message:
-        audio_file, error_message = download_content(url, content_type="audio")
-        if audio_file:
-            combine_video_and_audio(video_file,audio_file,os.path.join(TEMP_DIR,f"temp_{os.path.basename(video_file)}"))
-            if subtitle:
-              caption, error_message = get_captions(url, subtitle)
-              if caption:
-                add_subtitles(video_file, caption["path"], os.path.join(TEMP_DIR,f"temp_{os.path.basename(video_file)}"))
-                del caption["path"]
+    if lang:
+      if not re.match(lang_code_regrex, lang):
+        return jsonify({"error": "Invalid lang code"}), 400
     
-    if video_file:
-        threading.Thread(target=delete_file_after_delay, args=(video_file, 3600)).start()
-        if data.get("link"):
-          download_link = url_for('get_file', filename=os.path.basename(video_file), _external=True)
-          return jsonify({"download_link": download_link}), 200
-        else:
-          return send_file(video_file, as_attachment=True), 200
-    else:
-        return jsonify({"error": error_message}), 500
+    try:
+      yt = YouTube(url, use_oauth=AUTH, allow_oauth_cache=True,on_progress_callback = on_progress)
+      video_file, error_message = await asyncio.to_thread(download_content,yt)
+      if not error_message:
+          audio_file, error_message = await asyncio.to_thread(download_content, yt, content_type="audio")
+          if audio_file:
+              await asyncio.to_thread(combine_video_and_audio, video_file,audio_file,os.path.join(TEMP_DIR,f"temp_{os.path.basename(video_file)}"))
+              #combine_video_and_audio( video_file,audio_file,os.path.join(TEMP_DIR,f"temp_{os.path.basename(video_file)}"))
+              if subtitle:
+                caption, error_message = await asyncio.to_thread(get_captions, yt, lang)
+                if caption:
+                  await asyncio.to_thread(add_subtitles, video_file, caption["path"], os.path.join(TEMP_DIR,f"temp_{os.path.basename(video_file)}"), burn, lang)
+                  threading.Thread(target=delete_file_after_delay, args=(caption["path"], EXPIRATION_DELAY)).start()
+                  del caption["path"]
+                  
+              threading.Thread(target=delete_file_after_delay, args=(audio_file, EXPIRATION_DELAY)).start()
+         
+      
+      if video_file:
+          threading.Thread(target=delete_file_after_delay, args=(video_file, EXPIRATION_DELAY)).start()
+          if data.get("link"):
+            download_link =  url_for('get_file', filename=os.path.basename(video_file), _external=True)
+            return jsonify({"download_link": download_link}), 200
+          else:
+            return await send_file(video_file, as_attachment=True), 200
+      else:
+          return jsonify({"error": error_message}), 500
+    except (AgeRestrictedError, LiveStreamError, MaxRetriesExceeded, MembersOnly, VideoPrivate, VideoRegionBlocked, VideoUnavailable) as e:
+        logger.error(f"Error geting downloading video: {e}")
+        return jsonify({"error": e.error_string}), 500
+    except RegexMatchError as e:
+        logger.error(f"an error occored fetching url: {e}")
+        return jsonify({"error": "Invalid YouTube URL."}), 400
+    except Exception as e:
+        logger.error(f"An error occored downloading content:{e}")
+        return jsonify({"error": f"Server error : {e}"}), 500
 
 
 @app.route('/download/<resolution>', methods=['POST'])
-def download_by_resolution(resolution):
-    data = request.get_json()
+async def download_by_resolution(resolution):
+    data = await request.get_json()
     url = data.get('url')
     bitrate = data.get('bitrate')
     subtitle = data.get('subtitle') or data.get('caption')
-  
-    if not re.search(resolution_regrex,resolution):
-        return jsonify({"error": "Invald request URL, input a valid resolution for example 360p"}), 400
-    if bitrate:
-        if not re.search(bitrate_regrex,bitrate):
-            return jsonify({"error": "Invalid request URL, input a valid bitrate for example 128kpbs"}), 400
+    if isinstance(subtitle, dict):
+      burn = subtitle.get('burn')
+      lang = subtitle.get('lang')
+    else:
+      lang = subtitle
+      burn = True
     
     if not url:
         return jsonify({"error": "Missing 'url' parameter in the request body."}), 400
 
     if not is_valid_youtube_url(url):
         return jsonify({"error": "Invalid YouTube URL."}), 400
-    
-    video_file, error_message = download_content(url, resolution)
-    if not error_message:
-        if bitrate:
-          audio_file, error_message = download_content(url, content_type="audio", bitrate=bitrate)
-        else:
-          audio_file, error_message = download_content(url, content_type="audio", bitrate=bitrate)
-        if audio_file:
-            combine_video_and_audio(video_file,audio_file,os.path.join(TEMP_DIR,f"temp_{os.path.basename(video_file)}"))
-            if subtitle:
-              caption, error_message = get_captions(url, subtitle)
-              if caption:
-                add_subtitles(video_file, caption["path"], os.path.join(TEMP_DIR,f"temp_{os.path.basename(video_file)}"))
-                del caption["path"]
-                 
-    if video_file:
-        threading.Thread(target=delete_file_after_delay, args=(video_file, 3600)).start()
-        if data.get("link"):
-          download_link = url_for('get_file', filename=os.path.basename(video_file), _external=True)
-          return jsonify({"download_link": download_link}), 200
-        else:
-          return send_file(video_file, as_attachment=True), 200
-    else:
-        return jsonify({"error": error_message}), 500
-
+        
+    if not re.match(resolution_regrex,resolution):
+        return jsonify({"error": "Invald request URL, input a valid resolution for example 360p"}), 400
+    if bitrate:
+        if not re.match(bitrate_regrex,bitrate):
+            return jsonify({"error": "Invalid request URL, input a valid bitrate for example 48kbps"}), 400
+    if lang:
+      if not re.match(lang_code_regrex, lang):
+        return jsonify({"error": "Invalid lang code"}), 400
+        
+    try:
+      yt = YouTube(url, use_oauth=AUTH, allow_oauth_cache=True, on_progress_callback = on_progress)
+      video_file, error_message = await asyncio.to_thread(download_content, yt, resolution)
+      if not error_message:
+          if bitrate:
+            audio_file, error_message = await asyncio.to_thread(download_content, yt, content_type="audio", bitrate=bitrate)
+          else:
+            audio_file, error_message = await asyncio.to_thread(download_content, yt, content_type="audio", bitrate="")
+          if audio_file:
+              await asyncio.to_thread(combine_video_and_audio, video_file,audio_file,os.path.join(TEMP_DIR,f"temp_{os.path.basename(video_file)}"))
+              if subtitle:
+                caption, error_message = await asyncio.to_thread(get_captions, yt, lang)
+                if caption:
+                  await asyncio.to_thread(add_subtitles, video_file, caption["path"], os.path.join(TEMP_DIR,f"temp_{os.path.basename(video_file)}"), burn, lang)
+                  threading.Thread(target=delete_file_after_delay, args=(caption["path"], EXPIRATION_DELAY)).start()
+                  del caption["path"]
+              threading.Thread(target=delete_file_after_delay, args=(audio_file, EXPIRATION_DELAY)).start()
+                   
+      if video_file:
+          threading.Thread(target=delete_file_after_delay, args=(video_file, EXPIRATION_DELAY)).start()
+          if data.get("link"):
+            download_link =  url_for('get_file', filename=os.path.basename(video_file), _external=True)
+            return jsonify({"download_link": download_link}), 200
+          else:
+            return await send_file(video_file, as_attachment=True), 200
+      else:
+          return jsonify({"error": error_message}), 500
+    except (AgeRestrictedError, LiveStreamError, MaxRetriesExceeded, MembersOnly, VideoPrivate, VideoRegionBlocked, VideoUnavailable) as e:
+        logger.error(f"Error geting downloading video: {e}")
+        return jsonify({"error": e.error_string}), 500
+    except RegexMatchError as e:
+        logger.error(f"an error occored fetching url: {e}")
+        return jsonify({"error": "Invalid YouTube URL."}), 400
+    except Exception as e:
+        logger.error(f"An error occored downloading content:{e}")
+        return jsonify({"error": f"Server error : {e}"}), 500
+  
 @app.route('/download_audio', methods=['POST'])
-def download_highest_quality_audio():
-    data = request.get_json()
+async def download_highest_quality_audio():
+    data = await request.get_json()
     url = data.get('url')
   
     if not url:
@@ -281,57 +250,73 @@ def download_highest_quality_audio():
     if not is_valid_youtube_url(url):
       return jsonify({"error": "Invalid YouTube URL."}), 400
     try:
-      audio_file, error_message = download_content(url, content_type="audio")
+      yt = YouTube(url, use_oauth=AUTH, allow_oauth_cache=True, on_progress_callback = on_progress)
+      audio_file, error_message = await asyncio.to_thread(download_content, yt, content_type="audio")
         
       if audio_file:
-          threading.Thread(target=delete_file_after_delay, args=(audio_file, 3600)).start()
+          threading.Thread(target=delete_file_after_delay, args=(audio_file, EXPIRATION_DELAY)).start()
           if data.get("link"):
-              download_link = url_for('get_file', filename=os.path.basename(audio_file), _external=True)
+              download_link =  url_for('get_file', filename=os.path.basename(audio_file), _external=True)
               return jsonify({"download_link": download_link}), 200
           else:
-              return send_file(audio_file, as_attachment=True), 200
+              return await send_file(audio_file, as_attachment=True), 200
       else:
           return jsonify({"error": error_message}), 500
     except (AgeRestrictedError, LiveStreamError, MaxRetriesExceeded, MembersOnly, VideoPrivate, VideoRegionBlocked, VideoUnavailable) as e:
       logger.error(f"Error getting audio content: {e}")
       return jsonify({ "error": e.error_string }), 500
+    except RegexMatchError as e:
+        logger.error(f"an error occored fetching url: {e}")
+        return jsonify({"error": "Invalid YouTube URL."}), 400
+    except Exception as e:
+        logger.error(f"An error occored downloading content:{e}")
+        return jsonify({"error": f"Server error : {e}"}), 500
       
 
 @app.route('/download_audio/<bitrate>', methods=['POST'])
-def download_audio_by_bitrate(bitrate):
-    data = request.get_json()
+async def download_audio_by_bitrate(bitrate):
+    data = await request.get_json()
     url = data.get('url')
-    bitrate = data.get('bitrate')
-    
     
     if not url:
       return jsonify({"error": "Missing 'url' parameter in the request body."}), 400
   
     if not is_valid_youtube_url(url):
       return jsonify({"error": "Invalid YouTube URL."}), 400
+ 
+    if not re.match(f"{bitrate_regrex}",bitrate):
+       return jsonify({"error": "Invalid request URL, input a valid bitrate for example 48kpbs fuck you"}), 400
+ 
     try:
-      if bitrate:
-        if not re.search(bitrate_regrex, bitrate):
-          return jsonify({"error": "Invalid request URL, input a valid bitrate for example 128kpbs"}), 400
-      audio_file, error_message = download_content(url, content_type="audio", bitrate=bitrate)
+      yt = YouTube(url, use_oauth=AUTH, allow_oauth_cache=True, on_progress_callback = on_progress)
+      audio_file, error_message = await asyncio.to_thread(download_content, yt, content_type="audio", bitrate=bitrate)
         
       if audio_file:
-          threading.Thread(target=delete_file_after_delay, args=(audio_file, 3600)).start()
+          threading.Thread(target=delete_file_after_delay, args=(audio_file, EXPIRATION_DELAY)).start()
           if data.get("link"):
-              download_link = url_for('get_file', filename=os.path.basename(audio_file), _external=True)
+              download_link =  url_for('get_file', filename=os.path.basename(audio_file), _external=True)
               return jsonify({"download_link": download_link}), 200
           else:
-              return send_file(audio_file, as_attachment=True), 200
+              return await send_file(audio_file, as_attachment=True), 200
       else:
           return jsonify({"error": error_message}), 500
     except (AgeRestrictedError, LiveStreamError, MaxRetriesExceeded, MembersOnly, VideoPrivate, VideoRegionBlocked, VideoUnavailable) as e:
       logger.error(f"Error getting audio content: {e}")
       return jsonify({ "error": e.error_string }), 500
+    except RegexMatchError as e:
+        logger.error(f"an error occored fetching url: {e}")
+        return jsonify({"error": "Invalid YouTube URL."}), 400
+    except Exception as e:
+        logger.error(f"An error occored downloading content:{e}")
+        return jsonify({"error": f"Server error : {e}"}), 500
  
 @app.route('/captions/<lang>',methods=["GET"])
-def get_subtitles(lang):
+async def get_subtitles(lang):
     lang = lang.lower()
-    data = request.get_json()
+    data = request.args or await request.get_json()
+    if not data:
+      return jsonify({"error": "No prameters passed"}), 500
+    
     url = data.get('url')
     
     if not url:
@@ -339,8 +324,12 @@ def get_subtitles(lang):
   
     if not is_valid_youtube_url(url):
         return jsonify({"error": "Invalid YouTube URL."}), 400
+    
+    if not re.match(lang_code_regrex,lang):
+        return jsonify({"error": "Invalid lang code"}), 400
     try:
-      captions, error_message = get_captions(url,lang)
+      yt = YouTube(url, use_oauth=AUTH, allow_oauth_cache=True, on_progress_callback = on_progress)
+      captions, error_message = await asyncio.to_thread(get_captions,yt,lang)
       del captions["path"]
       if captions:
         return jsonify(captions), 200
@@ -349,16 +338,23 @@ def get_subtitles(lang):
     except (AgeRestrictedError, LiveStreamError, MaxRetriesExceeded, MembersOnly, VideoPrivate, VideoRegionBlocked, VideoUnavailable) as e:
       logger.error(f"Error getting caption content: {e}")
       return jsonify({ "error": e.error_string}), 500
+    except RegexMatchError as e:
+        logger.error(f"an error occored fetching url: {e}")
+        return jsonify({"error": "Invalid YouTube URL."}), 400
+    except Exception as e:
+        logger.error(f"An error occored downloading content:{e}")
+        return jsonify({"error": f"Server error : {e}"}), 500
 
 
 @app.route('/temp_file/<filename>', methods=['GET'])
-def get_file(filename):
+async def get_file(filename):
     file_path = os.path.join(TEMP_DIR, filename)
     if os.path.exists(file_path):
-        return send_file(file_path, as_attachment=True)
+        return await send_file(file_path, as_attachment=True)
     else:
         logger.warning(f"Requested file not found: {filename}")
         return jsonify({"error": "File not found"}), 404
+
 
 def clear_temp_directory():
   logging.info("Clearing temp files")

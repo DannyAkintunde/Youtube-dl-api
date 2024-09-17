@@ -1,9 +1,15 @@
 #!/bin/bash
 
-# Update package list
+echo "Installing Deps"
+
+python -m pip install -r requirements.txt
+
+echo "Update package list"
+
 apt update
 
-# Install FFmpeg
+echo "Installing FFmpeg"
+
 apt install -y ffmpeg
 
 # Verify installation
