@@ -66,7 +66,7 @@ async def search():
       return jsonify({"error": "Missing 'query'/'q' parameter in the request body."}), 400
     
     try:
-        s = Search(q, use_po_token=True)
+        s = Search(q, use_oauth=AUTH, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH)
         results = s.results
         parsed_results = parse_search_results(results)
         print(parsed_results)
