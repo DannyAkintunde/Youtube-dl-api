@@ -5,7 +5,7 @@ from pytubefix.exceptions import AgeRestrictedError, LiveStreamError, MaxRetries
 from apscheduler.schedulers.background import BackgroundScheduler
 from editor import combine_video_and_audio, add_subtitles
 from utils import remove_duplicates, get_avaliable_resolutions, get_avaliable_bitrates, get_avaliable_captions, is_valid_youtube_url, get_info, download_content, get_captions, delete_file_after_delay, write_creds_to_file
-from settings import DEBUG, AUTH, ACESS_TOKEN, REFRESH_TOKEN, EXPIRES, VISITOR_DATA, PO_TOKEN, MAX_DOWNLOAD_SIZE, TEMP_DIR, AUTH_DIR, AUTH_FILE_NAME, EXPIRATION_DELAY
+from settings import DEBUG, AUTH, ACCESS_TOKEN, REFRESH_TOKEN, EXPIRES, VISITOR_DATA, PO_TOKEN, MAX_DOWNLOAD_SIZE, TEMP_DIR, AUTH_DIR, AUTH_FILE_NAME, EXPIRATION_DELAY
 import re
 import os
 import time
@@ -32,7 +32,7 @@ if AUTH:
     os.makedirs(TEMP_DIR, exist_ok=True)
     os.makedirs(AUTH_DIR, exist_ok=True)
     AUTH_FILE_PATH = os.path.join(AUTH_DIR,AUTH_FILE_NAME)
-    write_creds_to_file(ACESS_TOKEN, REFRESH_TOKEN, EXPIRES, VISITOR_DATA, PO_TOKEN, AUTH_FILE_PATH)
+    write_creds_to_file(ACCESS_TOKEN, REFRESH_TOKEN, EXPIRES, VISITOR_DATA, PO_TOKEN, AUTH_FILE_PATH)
 
 bitrate_regrex = '\d{2,3}kbps'
 resolution_regrex = '\d{3,}p'

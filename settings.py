@@ -7,7 +7,7 @@ DEBUG = os.environ.get("DEBUG", "True") == "True"
 AUTH = os.environ.get("AUTH", "False") == "True"
 
 #fill if auth is true
-ACESS_TOKEN = os.environ.get("ACESS_TOKEN")
+ACCESS_TOKEN = os.environ.get("ACCESS_TOKEN")
 REFRESH_TOKEN = os.environ.get("REFRESH_TOKEN")
 EXPIRES = os.environ.get("EXPIRES")
 VISITOR_DATA = os.environ.get("VISITOR_DATA")
