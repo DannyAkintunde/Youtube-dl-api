@@ -151,3 +151,15 @@ def delete_file_after_delay(file_path, delay):
         logger.info("Deleting temp file " + file_path)
         os.remove(file_path)
 
+
+def write_creds_to_file(access_token, refresh_token, expires, visitor_data, po_token, file_path):
+    data = {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "expires": expires,
+        "visitorData": visitor_data,
+        "po_token": po_token
+    }
+
+    with open(file_path, 'w') as file:
+        json.dump(data, file)
