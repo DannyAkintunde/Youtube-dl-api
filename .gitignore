@@ -1,3 +1,5 @@
 app.log
+auth/
 venv/
 temp_files/
+__pycache__/
