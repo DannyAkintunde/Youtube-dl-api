@@ -60,7 +60,7 @@ def get_proxies():
         logger.info(f"fetching proxies from {response.url}")
         response.raise_for_status()
         if response.status_code == 200:
-          proxy_list = requests.text.split("\n")
+          proxy_list = response.text.split("\n")
           if len(proxy_list) >= 10:
             proxy_list = proxy_list[:10]
           else:
