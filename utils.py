@@ -1,4 +1,6 @@
 import json
+import random
+import requests
 import logging
 import os
 import shutil
@@ -6,7 +8,7 @@ import time
 from quart import url_for
 from pytubefix.exceptions import AgeRestrictedError, LiveStreamError, MaxRetriesExceeded, MembersOnly, VideoPrivate, VideoRegionBlocked, VideoUnavailable, RegexMatchError
 from youtube_urls_validator import validate_url
-from settings import MAX_DOWNLOAD_SIZE, TEMP_DIR, CODECS
+from settings import MAX_DOWNLOAD_SIZE, TEMP_DIR, CODECS, AUTH
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +44,42 @@ def is_valid_youtube_url(url):
     except:
       return False
       #return re.match(pattern, url) is not None
+    
+def get_proxies():
+    if AUTH:
+      try:
+        payload = {
+          "request": "display_proxies",
+          "protocol": "http",
+          "proxy_format": "protocolipport",
+          "format": "text",
+          "anonymity": "Elite,Anonymous",
+          "timeout": 150
+        }
+        response = requests.get("https://api.proxyscrape.com/v4/free-proxy-list/get", params=payload)
+        logger.info(f"fetching proxies from {response.url}")
+        response.raise_for_status()
+        if requests.status_code == 200:
+          proxy_list = requests.text.split("\n")
+          if len(proxy_list) >= 10:
+            proxy_list = proxy_list[:10]
+          else:
+            proxy_list = proxy_list
+      except requests.exceptions.HTTPError as e:
+        logger.error(f"An error occored fetching proxy list from {response.url}:\n  {e.args[0]}")
+        return {}
+      except requests.exceptions.Timeout as e:
+        logger.error(f"Connection timed out when fetching proxy list from {response.url}:\n {e}")
+        return {}
+      else:
+        proxy = random.choice(proxy_list)
+        return {
+          "http": proxy,
+          "https": proxy
+        }
+    else:
+      logger.info(f"Cannot use proxies with authentication")
+      return {}
 
 def get_info(yt):
     try:
