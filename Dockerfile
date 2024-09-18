@@ -1,33 +1,42 @@
-FROM ubuntu:20.04 AS builder
- 
+# using ubuntu LTS version
+FROM ubuntu:20.04 AS builder-image
+
+# avoid stuck build due to user prompt
 ARG DEBIAN_FRONTEND=noninteractive
- 
-WORKDIR /app
 
-RUN apt-get update && apt-get install -y python3
-RUN python3 -m venv venv
-ENV VIRTUAL_ENV=/app/venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+RUN apt-get update && apt-get install --no-install-recommends -y python3.9 python3.9-dev python3.9-venv python3-pip python3-wheel build-essential && \
+  apt-get install -y ffmpeg && \
+	apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# create and activate virtual environment
+# using final folder name to avoid path issues with packages
+RUN python3.9 -m venv /home/server/venv
+ENV PATH="/home/server/venv/bin:$PATH"
+
+# install requirements
 COPY requirements.txt .
-RUN pip install -r requirements.txt
- 
-# Stage 2
-FROM ubuntu:20.04 AS runner
+RUN pip3 install --no-cache-dir wheel
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-RUN apt-get -y update && apt-get -y upgrade && apt-get install -y ffmpeg
-RUN apt-get update && apt-get install -y python3
+FROM ubuntu:20.04 AS runner-image
+RUN apt-get update && apt-get install --no-install-recommends -y python3.9 python3-venv && \
+	apt-get clean && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
- 
-COPY --from=builder /app/venv venv
+RUN useradd --create-home server
+COPY --from=builder-image /home/server/venv /home/server/venv
+
+USER server
+RUN mkdir /home/server/code
+WORKDIR /home/server/code
 COPY . .
 
-ENV PYTHONUNBUFFERED=1
-ENV VIRTUAL_ENV=/app/venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-ENV QUART_APP=app/main.py
- 
 EXPOSE 5000
- 
-CMD ["hypercorn", "--bind" , ":5000", "--workers", "4", "main:app"]
+
+# make sure all messages always reach console
+ENV PYTHONUNBUFFERED=1
+
+# activate virtual environment
+ENV VIRTUAL_ENV=/home/server/venv
+ENV PATH="/home/server/venv/bin:$PATH"
+
+CMD ["hypercorn", "-b" , ":5000", "-w", "4", "main:app"]
