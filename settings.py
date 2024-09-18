@@ -7,11 +7,11 @@ DEBUG = os.environ.get("DEBUG", "True") == "True"
 AUTH = os.environ.get("AUTH", "False") == "True"
 
 #fill if auth is true
-ACCESS_TOKEN =  os.environ.get("ACCESS_TOKEN")
-REFRESH_TOKEN = os.environ.get("REFRESH_TOKEN")
-EXPIRES = os.environ.get("EXPIRES")
-VISITOR_DATA = os.environ.get("VISITOR_DATA")
-PO_TOKEN = os.environ.get("PO_TOKEN")
+ACCESS_TOKEN =  os.environ.get("ACCESS_TOKEN", "ya29.a0AcM612zOF-QP8C-mhPX6MfdeauIkYXo3VHT80yzTN0O2350n_8pSrgZdGV4q6XlQYOJNbrz-xN4NgllBTeMhvT47LICkXIGR8Z_9Bzb3lWEbXZWZvmUp5Ue40sfpgUT9Cay0L84nQfGRG39uWKMdmlQgx4bMoUSKK0xAlMiexgzJF9K6GmGoaCgYKAS8SARMSFQHGX2Mi3_po5jSxzMN3YncC3dsSbg0187")
+REFRESH_TOKEN = os.environ.get("REFRESH_TOKEN", "1//03q0cSea2PlBDCgYIARAAGAMSNwF-L9IrHHrwFHn9Qav0AWDpJvdFZ8R5-mNc_GE0tNn3l6hDEQ2i4ictQXUwqDQ9-Ki0xjCvlLA")
+EXPIRES = os.environ.get("EXPIRES", 1726619036)
+VISITOR_DATA = os.environ.get("VISITOR_DATA", "CgtuZVAzWVIzX2R5WSiJ4qO3BjIKCgJORxIEGgAgJw%3D%3D")
+PO_TOKEN = os.environ.get("PO_TOKEN", "MnRLRTG8kBazMEt9RGwvFceBv40KENnpHtlDrguGDKni7A-azrTC0L_GYy7Pz-fH6mqHFsS7CmHJ3c3g9Y6z-RqqRsbYhMeXWbiXmyTXLpKRXOkQFbgSjNeRohf9afkINW7suFEVcBe0OedclwPPNYTqkcXvKA==")
 
 # MAX_DOWNLOAD_SIZE: Maximum size (in bytes) allowed for downloads. Defaults to 2 GB if not set.
 MAX_DOWNLOAD_SIZE = int(os.environ.get("MAX_SIZE", 2_147_483_648))

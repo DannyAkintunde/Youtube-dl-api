@@ -8,7 +8,7 @@ import time
 from quart import url_for
 from pytubefix.exceptions import AgeRestrictedError, LiveStreamError, MaxRetriesExceeded, MembersOnly, VideoPrivate, VideoRegionBlocked, VideoUnavailable, RegexMatchError
 from youtube_urls_validator import validate_url
-from settings import MAX_DOWNLOAD_SIZE, TEMP_DIR, CODECS, AUTH
+from settings import MAX_DOWNLOAD_SIZE, TEMP_DIR, CODECS, AUTH, VISITOR_DATA, PO_TOKEN
 
 logger = logging.getLogger(__name__)
 
@@ -200,6 +200,11 @@ def write_creds_to_file(access_token, refresh_token, expires, visitor_data, po_t
         "visitorData": visitor_data,
         "po_token": po_token
     }
+    logger.debug(f"creds content: {data}")
     with open(file_path, 'w') as file:
         logger.info("writing creds")
         json.dump(data, file, indent=2)
+
+def fetch_po_token():
+  return VISITOR_DATA, PO_TOKEN
+  
