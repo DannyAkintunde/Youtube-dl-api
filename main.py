@@ -66,9 +66,9 @@ async def search():
       return jsonify({"error": "Missing 'query'/'q' parameter in the request body."}), 400
     
     try:
-        s = Search(q,  use_oauth=AUTH, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, po_token_verifier=fetch_po_token)
-        results = s.videos
-        parsed_results = parse_search_results(results)
+        s = await asyncio.to_thread(Search, q,  use_oauth=AUTH, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, po_token_verifier=fetch_po_token)
+        results = await asyncio.to_thread(lambda : s.videos)
+        parsed_results = await asyncio.to_thread(parse_search_results,results)
         print(parsed_results)
         if parsed_results and len(parsed_results) > 0:
           res = {
