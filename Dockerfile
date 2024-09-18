@@ -30,7 +30,7 @@ RUN mkdir /home/server/code
 WORKDIR /home/server/code
 COPY . .
 
-EXPOSE 5000
+EXPOSE 8000
 
 # make sure all messages always reach console
 ENV PYTHONUNBUFFERED=1
@@ -39,4 +39,4 @@ ENV PYTHONUNBUFFERED=1
 ENV VIRTUAL_ENV=/home/server/venv
 ENV PATH="/home/server/venv/bin:$PATH"
 
-CMD ["hypercorn", "-b" , ":5000", "-w", "4", "main:app"]
+CMD ["hypercorn", "-b" , ":8000", "-w", "4", "main:app"]
