@@ -59,7 +59,7 @@ def get_proxies():
         response = requests.get("https://api.proxyscrape.com/v4/free-proxy-list/get", params=payload)
         logger.info(f"fetching proxies from {response.url}")
         response.raise_for_status()
-        if requests.status_code == 200:
+        if response.status_code == 200:
           proxy_list = requests.text.split("\n")
           if len(proxy_list) >= 10:
             proxy_list = proxy_list[:10]
