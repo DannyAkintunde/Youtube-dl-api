@@ -44,7 +44,7 @@ def is_valid_youtube_url(url):
     except:
       return False
       #return re.match(pattern, url) is not None
-    
+"""    
 def get_proxies():
     if AUTH:
       try:
@@ -80,7 +80,7 @@ def get_proxies():
     else:
       logger.info(f"Cannot use proxies with authentication")
       return {}
-
+"""
 def get_info(yt):
     try:
         video_info = {
