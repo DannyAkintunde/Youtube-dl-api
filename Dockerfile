@@ -31,7 +31,7 @@ RUN chown -R server:server /home/server
 USER server
 RUN mkdir /home/server/code
 WORKDIR /home/server/code
-COPY . .
+COPY --chown=server:server . .
 
 EXPOSE 8000
 
