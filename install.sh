@@ -14,3 +14,5 @@ apt install -y ffmpeg
 
 # Verify installation
 ffmpeg -version
+
+echo "\n\nRun python main.py to run the server on your local machine"
