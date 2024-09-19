@@ -103,8 +103,10 @@ def video_id(value):
 
 
 async def get_info(url, yt):
+    logger.debug('https://youtu.be/'+video_id(url))
     try:
-        video = await Video.getInfo(video_id(url))
+        video = await Video.getInfo(url)
+        #print(video)
         video_info = {
             "resolutions": get_avaliable_resolutions(yt),
             "bitrates": get_avaliable_bitrates(yt),
