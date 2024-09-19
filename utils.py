@@ -9,6 +9,7 @@ from quart import url_for
 from pytubefix.exceptions import AgeRestrictedError, LiveStreamError, MaxRetriesExceeded, MembersOnly, VideoPrivate, VideoRegionBlocked, VideoUnavailable, RegexMatchError
 from youtubesearchpython.__future__ import Video, ResultMode
 from youtube_urls_validator import validate_url
+from urllib.parse import urlparse
 from settings import MAX_DOWNLOAD_SIZE, TEMP_DIR, CODECS, AUTH, VISITOR_DATA, PO_TOKEN
 
 logger = logging.getLogger(__name__)
@@ -83,16 +84,10 @@ def get_proxies():
       return {}
 """
 
-"""
-import urlparse
+
 
 def video_id(value):
-    Examples:
-    - http://youtu.be/SA2iWivDJiE
-    - http://www.youtube.com/watch?v=_oPAwA_Udwc&feature=feedu
-    - http://www.youtube.com/embed/SA2iWivDJiE
-    - http://www.youtube.com/v/SA2iWivDJiE?version=3&amp;hl=en_US
-    query = urlparse.urlparse(value)
+    query = urlparse(value)
     if query.hostname == 'youtu.be':
         return query.path[1:]
     if query.hostname in ('www.youtube.com', 'youtube.com'):
@@ -105,11 +100,11 @@ def video_id(value):
             return query.path.split('/')[2]
     # fail?
     raise ValueError
-"""
+
 
 async def get_info(url, yt):
     try:
-        video = await Video.getInfo(validate_url(url).replace("youtube.com","youtu.be"))
+        video = await Video.getInfo(video_id(url))
         video_info = {
             "resolutions": get_avaliable_resolutions(yt),
             "bitrates": get_avaliable_bitrates(yt),
