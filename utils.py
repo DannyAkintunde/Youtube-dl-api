@@ -9,7 +9,7 @@ from quart import url_for
 from pytubefix.exceptions import AgeRestrictedError, LiveStreamError, MaxRetriesExceeded, MembersOnly, VideoPrivate, VideoRegionBlocked, VideoUnavailable, RegexMatchError
 from youtubesearchpython.__future__ import Video, ResultMode
 from youtube_urls_validator import validate_url
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 from settings import MAX_DOWNLOAD_SIZE, TEMP_DIR, CODECS, AUTH, VISITOR_DATA, PO_TOKEN
 
 logger = logging.getLogger(__name__)
@@ -92,7 +92,7 @@ def video_id(value):
         return query.path[1:]
     if query.hostname in ('www.youtube.com', 'youtube.com'):
         if query.path == '/watch':
-            p = urlparse.parse_qs(query.query)
+            p = parse_qs(query.query)
             return p['v'][0]
         if query.path[:7] == '/embed/':
             return query.path.split('/')[2]
