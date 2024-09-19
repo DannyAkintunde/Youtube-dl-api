@@ -103,7 +103,7 @@ def video_id(value):
 
 def get_info(yt):
     try:
-      video_info = {
+        video_info = {
             "id": yt.video_id,
             "title": yt.title,
             "author": yt.author,
