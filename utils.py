@@ -7,6 +7,7 @@ import shutil
 import time
 from quart import url_for
 from pytubefix.exceptions import AgeRestrictedError, LiveStreamError, MaxRetriesExceeded, MembersOnly, VideoPrivate, VideoRegionBlocked, VideoUnavailable, RegexMatchError
+from youtubesearchpython.__future__ import Video, ResultMode
 from youtube_urls_validator import validate_url
 from settings import MAX_DOWNLOAD_SIZE, TEMP_DIR, CODECS, AUTH, VISITOR_DATA, PO_TOKEN
 
@@ -81,33 +82,49 @@ def get_proxies():
       logger.info(f"Cannot use proxies with authentication")
       return {}
 """
-def get_info(yt):
+
+"""
+import urlparse
+
+def video_id(value):
+    Examples:
+    - http://youtu.be/SA2iWivDJiE
+    - http://www.youtube.com/watch?v=_oPAwA_Udwc&feature=feedu
+    - http://www.youtube.com/embed/SA2iWivDJiE
+    - http://www.youtube.com/v/SA2iWivDJiE?version=3&amp;hl=en_US
+    query = urlparse.urlparse(value)
+    if query.hostname == 'youtu.be':
+        return query.path[1:]
+    if query.hostname in ('www.youtube.com', 'youtube.com'):
+        if query.path == '/watch':
+            p = urlparse.parse_qs(query.query)
+            return p['v'][0]
+        if query.path[:7] == '/embed/':
+            return query.path.split('/')[2]
+        if query.path[:3] == '/v/':
+            return query.path.split('/')[2]
+    # fail?
+    raise ValueError
+"""
+
+async def get_info(url, yt):
     try:
+        video = await Video.getInfo(validate_url(url).replace("youtube.com","youtu.be"))
         video_info = {
-            "id": yt.video_id,
-            "title": yt.title,
-            "author": yt.author,
-            "length": yt.length,
-            "views": yt.views,
             "resolutions": get_avaliable_resolutions(yt),
             "bitrates": get_avaliable_bitrates(yt),
             "subtitles": get_avaliable_captions(yt),
-            "watch_url": yt.watch_url,
-            "thumbnail_url": yt.thumbnail_url,
-            "keywords": yt.keywords,
-            "channel_id": yt.channel_id,
-            "channel_url": yt.channel_url,
-            "description": yt.description,
-            "publish_date": yt.publish_date,
             "url": {
                 "video": {stream.resolution: stream.url for stream in yt.streams.filter(progressive=True)},
                 "audio": {stream.abr: stream.url for stream in yt.streams.filter(only_audio=True)}
             }
         }
+        video_info.update(video)
         return video_info, None
     except Exception as e:
         logger.error(f"Error getting video info: {e}")
         return None, str(e)
+
 
 def validate_download(stream):
   if stream.filesize_approx <= MAX_DOWNLOAD_SIZE:
