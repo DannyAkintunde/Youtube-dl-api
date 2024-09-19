@@ -7,7 +7,6 @@ import shutil
 import time
 from quart import url_for
 from pytubefix.exceptions import AgeRestrictedError, LiveStreamError, MaxRetriesExceeded, MembersOnly, VideoPrivate, VideoRegionBlocked, VideoUnavailable, RegexMatchError
-from youtubesearchpython.__future__ import Video, ResultMode
 from youtube_urls_validator import validate_url
 from urllib.parse import urlparse, parse_qs
 from settings import MAX_DOWNLOAD_SIZE, TEMP_DIR, CODECS, AUTH, VISITOR_DATA, PO_TOKEN
@@ -85,7 +84,7 @@ def get_proxies():
 """
 
 
-
+"""
 def video_id(value):
     query = urlparse(value)
     if query.hostname == 'youtu.be':
@@ -100,23 +99,31 @@ def video_id(value):
             return query.path.split('/')[2]
     # fail?
     raise ValueError
+"""
 
-
-async def get_info(url, yt):
-    logger.debug('https://youtu.be/'+video_id(url))
+def get_info(yt):
     try:
-        video = await Video.get(url)
-        #print(video)
-        video_info = {
+      video_info = {
+            "id": yt.video_id,
+            "title": yt.title,
+            "author": yt.author,
+            "length": yt.length,
+            "views": yt.views,
             "resolutions": get_avaliable_resolutions(yt),
             "bitrates": get_avaliable_bitrates(yt),
             "subtitles": get_avaliable_captions(yt),
+            "watch_url": yt.watch_url,
+            "thumbnail_url": yt.thumbnail_url,
+            "keywords": yt.keywords,
+            "channel_id": yt.channel_id,
+            "channel_url": yt.channel_url,
+            "description": yt.description,
+            "publish_date": yt.publish_date,
             "url": {
                 "video": {stream.resolution: stream.url for stream in yt.streams.filter(progressive=True)},
                 "audio": {stream.abr: stream.url for stream in yt.streams.filter(only_audio=True)}
             }
         }
-        video_info.update(video)
         return video_info, None
     except Exception as e:
         logger.error(f"Error getting video info: {e}")

@@ -49,7 +49,6 @@ async def handle_ping():
     return jsonify({"message":"pong"}), 200
 
 
-#suggestions_obj = Suggestions()
 
 search_objs = {}
 
@@ -135,7 +134,7 @@ async def video_info():
     
     try:
       yt = YouTube(url,  use_oauth=AUTH, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, po_token_verifier=fetch_po_token)
-      video_info, error = await get_info(url, yt)
+      video_info, error = await asyncio.to_thread(get_info, yt)
       
       if video_info:
         return jsonify(video_info), 200
