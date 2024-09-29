@@ -454,15 +454,27 @@ GET /captions/en?url=https://youtube.com/watch?v=dQw4w9WgXcQ
 
 ```json
 {
-  "lang": "en",
-  "captions": [
+  "caption": "usually it's my kids who break stuff and\nI'm the one who gets to fix it but when\ncorrosion in my DIY pool water cooling",
+  "caption_json": [
     {
-      "start": "00:00:01",
-      "end": "00:00:05",
-      "text": "Welcome to the Python tutorial!"
+      "duration": 5.679,
+      "start": 0.12,
+      "text": "usually it's my kids who break stuff and"
+    },
+    {
+      "duration": 5.919,
+      "start": 2.72,
+      "text": "I'm the one who gets to fix it but when"
+    },
+    {
+      "duration": 6.201,
+      "start": 5.799,
+      "text": "corrosion in my DIY pool water cooling"
     }
   ],
-  "path": "/path/to/captions/file.srt"
+  "file": "http://youtube-dl-api.frii.site/temp_file/I%20broke%20my%20son's%20gaming%20PC%20and%20now%20I%E2%80%99m%20making%20him%20fix%20it.srt",
+  "lang": "English (auto-generated)",
+  "lang_code": "en"
 }
 ```
 
