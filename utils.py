@@ -212,7 +212,7 @@ def get_captions(yt,lang):
         json_caption = JSONFormatter().format_transcript(caption, indent=2)
         text_caption = TextFormatter().format_transcript(caption)
         caption_file = url_for('get_file', filename=f"{yt.title}.srt", _external=True)
-        return {"lang": lang, "lang_code": transcript.language_code,"caption": text_caption,"caption_json": json.load(json_caption), "file":caption_file, "path":os.path.join(TEMP_DIR, f"{yt.title}.srt")}, None
+        return {"lang": lang, "lang_code": transcript.language_code,"caption": text_caption,"caption_json": json.loads(json_caption), "file":caption_file, "path":os.path.join(TEMP_DIR, f"{yt.title}.srt")}, None
       else:
         return None, f"No captions found. Avaliable captions are: {get_avaliable_captions(yt)}"
     except Exception as e:
