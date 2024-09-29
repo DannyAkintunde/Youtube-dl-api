@@ -43,15 +43,39 @@ A Quart-based API for downloading YouTube videos and audio, retrieving video met
 
 ## Configuration ⚙️
 
-Adjust configuration settings in the `settings.py` file:
+*Adjust configuration settings in the `settings.py` file:*
 
-- `DEBUG`: Enable or disable debug mode (default: `True`).
-- `AUTH`: Configure authentication (default: `False`).
-- `MAX_DOWNLOAD_SIZE`: Maximum file size for downloads (default: 2 GiB).
-- `EXPIRATION_DELAY`: Delay for expiring temporary files (default: 1800 seconds).
-- `TEMP_DIR`: Directory for storing temporary files.
-- `CODECS`: List of video and audio codecs to use (default: `avc1,mp4a`).
+- `DEBUG`: Enable or disable debug mode (default: *True*).
+  
+- *AUTH*: Configure authentication (default: *False*).
 
+- *ACCESS_TOKEN*: Token for accessing protected resources (required if AUTH is *True*).
+
+- *REFRESH_TOKEN*: Token for refreshing access (required if AUTH is *True*).
+
+- *EXPIRES*: Expiration time for the access token (required if AUTH is *True*).
+
+- *VISITOR_DATA*: Data for visitor tracking (required if AUTH is *True*).
+
+- *PO_TOKEN*: Token for purchase orders (required if AUTH is *True*).
+
+- *MAX_DOWNLOAD_SIZE*: Maximum file size for downloads (default: *2 GiB*).
+
+- *MAX_SEARCH_AMOUNT*: Maximum number of video search results (default: *25*).
+
+- *MIN_SEARCH_AMOUNT*: Minimum number of video search results (default: *2*).
+
+- *DEFAULT_SEARCH_AMOUNT*: Default number of video search results (default: *20*).
+
+- *EXPIRATION_DELAY*: Delay for expiring temporary files (default: *1800 seconds*).
+
+- *TEMP_DIR**: Directory for storing temporary files (default: **'temp_files'*).
+
+- *AUTH_DIR*: Path to save authentication file (default: *'auth'*).
+
+- *AUTH_FILE_NAME*: Name of the authentication file (default: *'temp.json'*).
+
+- *CODECS*: List of video and audio codecs to use (default: *'avc1,aac'*).
 ## API Endpoints 🌐
 
 ### Health Check
