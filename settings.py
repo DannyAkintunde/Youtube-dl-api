@@ -18,9 +18,9 @@ MAX_DOWNLOAD_SIZE = int(os.environ.get("MAX_SIZE", 2_147_483_648))
 # MAX_SEARCH_AMOUNT: Maximum number of video search results.
 MAX_SEARCH_AMOUNT = int(os.environ.get("MAX_SEARCH", 25))
 # MAX_SEARCH_AMOUNT: Minimum number of video search results.
-MIN_SEARCH_AMOUNT = int(os.environ.get("MAX_SEARCH", 2))
+MIN_SEARCH_AMOUNT = int(os.environ.get("MAX_AMOUNT", 2))
 # MAX_SEARCH_AMOUNT: Defualt number of video search results.
-DEFUALT_SEARCH_AMOUNT = int(os.environ.get("MAX_SEARCH", 20))
+DEFUALT_SEARCH_AMOUNT = int(os.environ.get("DEFUALT_AMOUNT", 20))
 
 # EXPIRATION_DELAY: Time (in seconds) before a resource expires. Defaults to 30 minutes (1800 seconds) if not set.
 EXPIRATION_DELAY = int(os.environ.get("EXPIRATION", 1800))
