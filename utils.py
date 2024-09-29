@@ -11,9 +11,10 @@ from youtube_urls_validator import validate_url
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api.formatters import JSONFormatter, SRTFormatter, TextFormatter
 from urllib.parse import urlparse, parse_qs
-from settings import MAX_DOWNLOAD_SIZE, TEMP_DIR, CODECS, AUTH, VISITOR_DATA, PO_TOKEN
+from settings import MAX_DOWNLOAD_SIZE, TEMP_DIR, CODECS, AUTH, VISITOR_DATA, PO_TOKEN, PROXY, DEBUG
 
 logger = logging.getLogger(__name__)
+
 
 def get_free_mem() -> int:
   disc = shutil.disk_usage('/')
@@ -32,7 +33,11 @@ def get_avaliable_bitrates(yt):
     return sorted(remove_duplicates(filter(lambda x: x is not None, [stream.abr for stream in yt.streams.filter(only_audio=True)])), key= lambda char: int(char[:-4]),reverse=True)
 
 def get_avaliable_captions(yt):
-    transcript_list = YouTubeTranscriptApi.list_transcripts(yt.video_id)
+    if not DEBUG:
+        if PROXY:
+          proxies = {"http": PROXY[0], "https": PROXY[1]}
+    proxies = {}
+    transcript_list = YouTubeTranscriptApi.list_transcripts(yt.video_id, proxies = proxies)
     return sorted(remove_duplicates(filter(lambda x: x is not None, [caption.language_code for caption in transcript_list])), key= lambda char: char,reverse=True)
 
 def filter_stream_by_codec(streams, codec):
@@ -191,7 +196,11 @@ def download_content(yt, resolution="", bitrate="", content_type="video"):
 def get_captions(yt,lang):
     try:
       #yt = YouTube(url, use_oauth=AUTH, allow_oauth_cache=True,on_progress_callback=on_progress)
-      transcripts = YouTubeTranscriptApi.list_transcripts(yt.video_id)
+      if not DEBUG:
+        if PROXY:
+          proxies = {"http": PROXY[0], "https": PROXY[1]}
+      proxies = {}
+      transcripts = YouTubeTranscriptApi.list_transcripts(yt.video_id, proxies = proxies)
       transcript = transcripts.find_transcript([lang])
       if transcript:
         caption = transcript.fetch()

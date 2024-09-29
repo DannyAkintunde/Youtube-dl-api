@@ -133,7 +133,11 @@ async def video_info():
       return jsonify({"error": "Invalid YouTube URL."}), 400
     
     try:
-      yt = YouTube(url,  use_oauth=AUTH, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, po_token_verifier=fetch_po_token)
+      if not DEBUG:
+        if PROXY:
+          proxies = {"http": PROXY[0], "https": PROXY[1]}
+      proxies = {}
+      yt = YouTube(url,  use_oauth=AUTH, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, po_token_verifier=fetch_po_token, proxies = proxies)
       video_info, error = await asyncio.to_thread(get_info, yt)
       
       if video_info:

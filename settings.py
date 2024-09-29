@@ -3,6 +3,9 @@ import os
 # DEBUG mode: Determines if debugging is enabled. Defaults to True if not set.
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 
+#PROXY: http,https proxies
+PROXY = os.environ.get("PROXY","").split(",")
+
 # AUTH: Determines if authentication is required. Defaults to False if not set.
 AUTH = os.environ.get("AUTH", "False") == "True"
 
