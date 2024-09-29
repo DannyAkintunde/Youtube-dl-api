@@ -4,7 +4,7 @@ import os
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 
 #PROXY: http,https proxies
-PROXY = os.environ.get("PROXY","").split(",")
+PROXY = os.environ.get("PROXIES","").split(",")
 
 # AUTH: Determines if authentication is required. Defaults to False if not set.
 AUTH = os.environ.get("AUTH", "False") == "True"

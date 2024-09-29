@@ -36,7 +36,7 @@ def get_avaliable_captions(yt):
     if not DEBUG:
         if PROXY:
           proxies = {"http": PROXY[0], "https": PROXY[1]}
-    proxies = {}
+    else: proxies = {}
     transcript_list = YouTubeTranscriptApi.list_transcripts(yt.video_id, proxies = proxies)
     return sorted(remove_duplicates(filter(lambda x: x is not None, [caption.language_code for caption in transcript_list])), key= lambda char: char,reverse=True)
 
@@ -199,7 +199,7 @@ def get_captions(yt,lang):
       if not DEBUG:
         if PROXY:
           proxies = {"http": PROXY[0], "https": PROXY[1]}
-      proxies = {}
+      else: proxies = {}
       transcripts = YouTubeTranscriptApi.list_transcripts(yt.video_id, proxies = proxies)
       transcript = transcripts.find_transcript([lang])
       if transcript:
