@@ -363,8 +363,8 @@ async def get_subtitles(lang):
     try:
       yt = YouTube(url,  use_oauth=AUTH, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, on_progress_callback = on_progress, po_token_verifier=fetch_po_token)
       captions, error_message = await asyncio.to_thread(get_captions,yt,lang)
-      del captions["path"]
       if captions:
+        del captions["path"]
         return jsonify(captions), 200
       else:
         return jsonify({"error":error_message}), 500
