@@ -47,6 +47,8 @@ Adjust configuration settings in the `settings.py` file:
 
 - `DEBUG`: Enable or disable debug mode (default: `True`).
   
+- `PROXY`: Configure proxies in the format of http_proxy,https_proxy.
+
 - `AUTH`: Configure authentication (default: `False`).
 
 - `ACCESS_TOKEN`: Token for accessing protected resources (required if `AUTH` is `True`).
@@ -76,6 +78,7 @@ Adjust configuration settings in the `settings.py` file:
 - `AUTH_FILE_NAME`: Name of the authentication file (default: `'temp.json'`).
 
 - `CODECS`: List of video and audio codecs to use (default: `'avc1,aac'`).
+
 ## API Endpoints 🌐
 
 ### Health Check
