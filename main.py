@@ -156,8 +156,12 @@ async def download_highest_avaliable_resolution():
     data = await request.get_json()
     url = data.get('url')
     subtitle = data.get('subtitle') or data.get('caption')
-    burn = subtitle.get('burn')
-    lang = subtitle.get('lang')
+    if isinstance(subtitle, dict):
+      burn = subtitle.get('burn')
+      lang = subtitle.get('lang')
+    else:
+      lang = subtitle
+      burn = True
     
     if not url:
         return jsonify({"error": "Missing 'url' parameter in the request body."}), 400
