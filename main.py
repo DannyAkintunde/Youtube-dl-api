@@ -106,7 +106,7 @@ async def next_page(search_id):
         "search_id": search_id
       }), 200
     else: 
-      logger.info(f"No pages foind for {str(search_id)}")
+      logger.info(f"No pages found for {str(search_id)}")
       return jsonify({"error": "No more pages"}), 400
   except ValueError as e:
     logger.error(f"Invalid search id Error: {repr(e)}")
@@ -133,11 +133,7 @@ async def video_info():
       return jsonify({"error": "Invalid YouTube URL."}), 400
     
     try:
-      if not DEBUG:
-        if PROXY:
-          proxies = {"http": PROXY[0], "https": PROXY[1]}
-      else: proxies = {}
-      yt = YouTube(url,  use_oauth=AUTH, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, po_token_verifier=fetch_po_token, proxies = proxies)
+      yt = YouTube(url,  use_oauth=AUTH, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, po_token_verifier=fetch_po_token)
       video_info, error = await asyncio.to_thread(get_info, yt)
       
       if video_info:
