@@ -31,6 +31,23 @@ logger= logging.getLogger(__name__)
 
 app = Quart(__name__)
 
+# ssl patch
+import os
+import requests
+from requests.sessions import Session
+
+# Monkey-patch Session to respect an environment variable
+class CustomSession(Session):
+    def request(self, *args, **kwargs):
+        # Check if the environment variable is set to disable SSL verification
+        if os.getenv('DISABLE_SSL_VERIFY', '1') == '1':
+            kwargs['verify'] = False
+        return super(CustomSession, self).request(*args, **kwargs)
+
+# Replace the default session with the custom session
+requests.Session = CustomSession
+
+
 if AUTH:
       os.makedirs(TEMP_DIR, exist_ok=True)
       os.makedirs(AUTH_DIR, exist_ok=True)
