@@ -14,6 +14,8 @@ import threading
 import logging
 import asyncio
 import uuid
+import requests
+from requests.sessions import Session
 
 def setup_logging():
     logging.basicConfig(
@@ -28,6 +30,14 @@ def setup_logging():
 setup_logging()
 
 logger= logging.getLogger(__name__)
+
+# Monkey-patch Session to respect an environment variable
+class CustomSession(Session):
+    def request(self, *args, **kwargs):
+        # Check if the environment variable is set to disable SSL verification
+        if os.getenv('DISABLE_SSL_VERIFY', '1') == '1':
+            kwargs['verify'] = False
+        return super(CustomSession, self).request(*args, **kwargs)
 
 app = Quart(__name__)
 
@@ -409,6 +419,8 @@ def clear_temp_directory():
 
 
 if __name__ == '__main__':
+    # Replace the default session with the custom session
+    requests.Session = CustomSession
     if not DEBUG:
       scheduler = BackgroundScheduler()
       scheduler.add_job(clear_temp_directory, "interval", days=1)
