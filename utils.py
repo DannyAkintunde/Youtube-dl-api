@@ -196,10 +196,7 @@ def download_content(yt, resolution="", bitrate="", content_type="video"):
 def get_captions(yt,lang):
     try:
       #yt = YouTube(url, use_oauth=AUTH, allow_oauth_cache=True,on_progress_callback=on_progress)
-      if not DEBUG:
-        if PROXY:
-          proxies = {"http": PROXY[0], "https": PROXY[1]}
-      else: proxies = {}
+      proxies = get_proxies()
       transcripts = YouTubeTranscriptApi.list_transcripts(yt.video_id, proxies = proxies)
       transcript = transcripts.find_transcript([lang])
       if transcript:
