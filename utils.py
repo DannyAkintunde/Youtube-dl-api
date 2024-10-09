@@ -32,6 +32,16 @@ def get_avaliable_resolutions(yt):
 def get_avaliable_bitrates(yt):
     return sorted(remove_duplicates(filter(lambda x: x is not None, [stream.abr for stream in yt.streams.filter(only_audio=True)])), key= lambda char: int(char[:-4]),reverse=True)
 
+def get_proxies():
+    reason = "AUTH = False"
+    if AUTH:
+        reason = "no proxies"
+        if PROXY:
+            logger.info("Using proxies")
+            return {"http": PROXY[0], "https": PROXY[1]}
+    logger.warning("Not Using proxies because {}".format(reason))
+    return {}
+
 def get_avaliable_captions(yt):
     if not DEBUG:
         if PROXY:
