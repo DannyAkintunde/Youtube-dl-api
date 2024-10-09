@@ -119,7 +119,7 @@ def get_info(yt):
             "views": yt.views,
             "resolutions": get_avaliable_resolutions(yt),
             "bitrates": get_avaliable_bitrates(yt),
-            "subtitles": get_avaliable_captions(yt),
+            #"subtitles": get_avaliable_captions(yt),
             "watch_url": yt.watch_url,
             "thumbnail_url": yt.thumbnail_url,
             "keywords": yt.keywords,
