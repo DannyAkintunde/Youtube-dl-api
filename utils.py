@@ -121,7 +121,7 @@ def get_proxies():
 
 
 def video_id(value):
-    if not value return
+    if not value: return
     query = urlparse(value)
     if query.hostname == 'youtu.be':
         return query.path[1:]
