@@ -30,8 +30,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y python3.9 pytho
 
 RUN useradd --create-home server
 COPY --from=builder-image /home/server/venv /home/server/venv
-COPY --from=builder-image /home/server/scraper /home/server/scraper
-
 
 # Change ownership of the home directory to server user
 RUN chown -R server:server /home/server
@@ -40,6 +38,7 @@ USER server
 RUN mkdir /home/server/code
 WORKDIR /home/server/code
 COPY --chown=server:server . .
+COPY --chown=server:server --from=builder-image /home/server/scraper ./scraper
 
 EXPOSE 8000
 
