@@ -24,11 +24,9 @@ COPY requirements.txt .
 RUN pip3 install --no-cache-dir wheel
 RUN pip3 install --no-cache-dir -r requirements.txt
 RUN pip3 install --no-cache-dir -r home/server/scraper/requirements.txt
-RUN pip3 install --no-cache-dir playwright
-RUN chmod +x home/server/scraper/install.sh
-RUN ./home/server/scraper/install.sh
 
 FROM ubuntu:20.04 AS runner-image
+
 RUN apt-get update && \
   apt-get install -y software-properties-common && \
   add-apt-repository ppa:deadsnakes/ppa && \
@@ -52,7 +50,7 @@ COPY --chown=server:server . .
 COPY --chown=server:server --from=builder-image /home/server/scraper ./scraper
 
 #install browswes
-RUN chmod +x /scraper/install.sh
+RUN chmod +x scraper/install.sh
 RUN ./scraper/install.sh
 
 EXPOSE 8000
