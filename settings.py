@@ -3,8 +3,8 @@ import os
 # DEBUG mode: Determines if debugging is enabled. Defaults to True if not set.
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 
-#PROXY: http,https proxies
-PROXY = os.environ.get("PROXIES","").split(",")
+# PROXY: list of proxies
+PROXIES = os.environ.get("PROXIES","").split(",")
 
 # AUTH: Determines if authentication is required. Defaults to False if not set.
 AUTH = os.environ.get("AUTH", "False") == "True"
@@ -18,6 +18,8 @@ PO_TOKEN = os.environ.get("PO_TOKEN")
 
 # MAX_DOWNLOAD_SIZE: Maximum size (in bytes) allowed for downloads. Defaults to 2 GB if not set.
 MAX_DOWNLOAD_SIZE = int(os.environ.get("MAX_SIZE", 2_147_483_648))
+# MAX_VIDEO_LENGTH: Maximum allow video length in 
+MAX_VIDEO_LENGTH = os.environ.get('MAX_LENGTH', '')
 # MAX_SEARCH_AMOUNT: Maximum number of video search results.
 MAX_SEARCH_AMOUNT = int(os.environ.get("MAX_SEARCH", 25))
 # MAX_SEARCH_AMOUNT: Minimum number of video search results.

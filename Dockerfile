@@ -4,22 +4,28 @@ FROM ubuntu:20.04 AS builder-image
 # avoid stuck build due to user prompt
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install --no-install-recommends -y python3.9 python3.9-dev python3.9-venv python3-pip python3-wheel build-essential && \
+RUN apt-get update && apt-get install --no-install-recommends -y python3.12 python3.12-dev python3.12-venv python3-pip python3-wheel build-essential git && \
   apt-get install -y ffmpeg && \
 	apt-get clean && rm -rf /var/lib/apt/lists/*
 
+RUN git clone https://github.com/DannyAkintunde/Youtube-dl-scraper scraper
+
 # create and activate virtual environment
 # using final folder name to avoid path issues with packages
-RUN python3.9 -m venv /home/server/venv
+RUN python3.12 -m venv /home/server/venv
 ENV PATH="/home/server/venv/bin:$PATH"
 
 # install requirements
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir wheel
 RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r scraper/requirements.txt
+RUN pip3 install --no-cache-dir playwright
+RUN chmod +x scraper/install.sh
+RUN ./scraper/install.sh
 
 FROM ubuntu:20.04 AS runner-image
-RUN apt-get update && apt-get install --no-install-recommends -y python3.9 python3-venv && \
+RUN apt-get update && apt-get install --no-install-recommends -y python3.12 python3-venv && \
 	apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN useradd --create-home server
