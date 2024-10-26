@@ -49,6 +49,10 @@ WORKDIR /home/server/code
 COPY --chown=server:server . .
 COPY --chown=server:server --from=builder-image /home/server/scraper ./scraper
 
+# activate virtual environment
+ENV VIRTUAL_ENV=/home/server/venv
+ENV PATH="/home/server/venv/bin:$PATH"
+
 #install browswes
 RUN chmod +x scraper/install.sh
 RUN ./scraper/install.sh
@@ -57,9 +61,5 @@ EXPOSE 8000
 
 # make sure all messages always reach console
 ENV PYTHONUNBUFFERED=1
-
-# activate virtual environment
-ENV VIRTUAL_ENV=/home/server/venv
-ENV PATH="/home/server/venv/bin:$PATH"
 
 CMD ["hypercorn", "-b" , ":8000", "-w", "4", "main:app"]
