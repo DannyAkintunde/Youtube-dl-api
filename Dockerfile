@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y python3.9 pytho
   apt-get install -y ffmpeg && \
 	apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/DannyAkintunde/Youtube-dl-scraper scraper
+RUN git clone https://github.com/DannyAkintunde/Youtube-dl-scraper home/server/scraper
 
 # create and activate virtual environment
 # using final folder name to avoid path issues with packages
@@ -21,8 +21,8 @@ RUN pip3 install --no-cache-dir wheel
 RUN pip3 install --no-cache-dir -r requirements.txt
 RUN pip3 install --no-cache-dir -r scraper/requirements.txt
 RUN pip3 install --no-cache-dir playwright
-RUN chmod +x scraper/install.sh
-RUN ./scraper/install.sh
+RUN chmod +x home/server/scraper/install.sh
+RUN ./home/server/scraper/install.sh
 
 FROM ubuntu:20.04 AS runner-image
 RUN apt-get update && apt-get install --no-install-recommends -y python3.9 python3-venv && \
