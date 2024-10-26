@@ -12,7 +12,7 @@ from youtube_urls_validator import validate_url
 # from youtube_transcript_api import YouTubeTranscriptApi
 # from youtube_transcript_api.formatters import JSONFormatter, SRTFormatter, TextFormatter
 from urllib.parse import urlparse, parse_qs
-from settings import MAX_DOWNLOAD_SIZE, TEMP_DIR, CODECS, AUTH, VISITOR_DATA, PO_TOKEN, PROXY, DEBUG
+from settings import MAX_DOWNLOAD_SIZE, TEMP_DIR, CODECS, AUTH, VISITOR_DATA, PO_TOKEN, PROXIES, DEBUG
 
 logger = logging.getLogger(__name__)
 
