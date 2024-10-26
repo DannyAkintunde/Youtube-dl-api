@@ -6,8 +6,8 @@ echo "Installing dependencies..."
 install_python() {
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         echo "Installing Python on Linux..."
-        sudo apt update
-        sudo apt install -y python3 python3-pip
+        apt update
+        apt install -y python3 python3-pip
     elif [[ "$OSTYPE" == "linux-android"* ]]; then
         echo "Installing Python on Termux..."
         apt update
@@ -73,9 +73,9 @@ echo "Updating package list..."
 
 # Update package list based on OS
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    sudo apt update
+    apt update
     echo "Installing FFmpeg..."
-    sudo apt install -y ffmpeg
+    apt install -y ffmpeg
 elif [[ "$OSTYPE" == "linux-android"* ]]; then
     apt update
     echo "Installing FFmpeg..."
