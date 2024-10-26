@@ -32,7 +32,7 @@ logger= logging.getLogger(__name__)
 
 app = Quart(__name__)
 
-youtube = Youtube(download_folder=r'../{TEMP_DIR}')
+youtube = Youtube(download_folder=r'../{TEMP_DIR}', proxies=get_proxies())
 
 if AUTH:
       os.makedirs(TEMP_DIR, exist_ok=True)
