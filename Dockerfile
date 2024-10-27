@@ -26,7 +26,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 RUN pip3 install --no-cache-dir -r home/server/scraper/requirements.txt
 RUN pip3 install --no-cache-dir playwright
 RUN chmod +x home/server/scraper/install.sh
-RUN .home/server/scraper/install.sh
+RUN ./home/server/scraper/install.sh
 
 FROM ubuntu:20.04 AS runner-image
 
