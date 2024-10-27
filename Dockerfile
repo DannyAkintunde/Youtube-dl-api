@@ -24,6 +24,9 @@ COPY requirements.txt .
 RUN pip3 install --no-cache-dir wheel
 RUN pip3 install --no-cache-dir -r requirements.txt
 RUN pip3 install --no-cache-dir -r home/server/scraper/requirements.txt
+RUN pip3 install --no-cache-dir playwright
+RUN chmod +x home/server/scraper/install.sh
+RUN .home/server/scraper/install.sh
 
 FROM ubuntu:20.04 AS runner-image
 
@@ -38,7 +41,6 @@ RUN apt-get update && \
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
 
 RUN useradd --create-home server
-COPY --from=builder-image /home/server/venv /home/server/venv
 
 # Change ownership of the home directory to server user
 RUN chown -R server:server /home/server
@@ -47,17 +49,13 @@ USER server
 RUN mkdir /home/server/code
 WORKDIR /home/server/code
 COPY --chown=server:server . .
+COPY --from=builder-image /home/server/venv ./venv
 COPY --from=builder-image /home/server/scraper ./scraper
+COPY --from=builder-image /root/.cache/ms-playwright ./.cache/ms-playwright
 
 # activate virtual environment
 ENV VIRTUAL_ENV=/home/server/venv
 ENV PATH="/home/server/venv/bin:$PATH"
-
-USER root
-
-#install browswes
-RUN chmod +x scraper/install.sh
-RUN ./scraper/install.sh
 
 USER server
 
