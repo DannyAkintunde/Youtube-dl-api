@@ -31,8 +31,10 @@ setup_logging()
 logger= logging.getLogger(__name__)
 
 app = Quart(__name__)
-
-youtube = asynio.to_thread(Youtube, download_folder=r'../{TEMP_DIR}', proxies=get_proxies())
+# from playwright.sync_api import sync_playwright, Playwright, Browser, BrowserContext, Page, Route, TimeoutError
+# playwright = sync_playwright().start()
+# asyncio.to_thread(playwright.chromium.launch)
+youtube = Youtube(download_folder=r'../{TEMP_DIR}', proxies=get_proxies())
 
 if AUTH:
       os.makedirs(TEMP_DIR, exist_ok=True)
@@ -143,7 +145,7 @@ async def video_info():
       #     proxies = {"http": PROXY[0], "https": PROXY[1]}
       # else: proxies = {}
       
-      yt = await asyncio.to_thread(youtube.search, url)
+      yt = await youtube.search(url)
       # yt = YouTube(url,  use_oauth=AUTH, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, po_token_verifier=fetch_po_token, proxies = { "http": "http://odfraeav-rotate:lb1aqv0z6r22@p.webshare.io:80", "https": "http://odfraeav-rotate:lb1aqv0z6r22@p.webshare.io:80"})
       video_info, error = await asyncio.to_thread(get_info, yt)
       
@@ -521,7 +523,7 @@ async def add_dev_details(response):
           "user_name": "DannyAkintunde",
           "profile_link": "https://github.com/DannyAkintunde"
         }
-        response.set_data(jsonify(data).data)
+        response.set_data(await jsonify(data).data)
         
     return response
 
