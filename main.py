@@ -143,7 +143,7 @@ async def video_info():
       return jsonify({"error": "Invalid YouTube URL."}), 400
     
     try:
-      yt = YouTube(url,  use_oauth=False, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, po_token_verifier=fetch_po_token)
+      yt = YouTube(url,  use_oauth=AUTH, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, po_token_verifier=fetch_po_token)
       video_info, error = await asyncio.to_thread(get_info, yt)
       
       if video_info:
@@ -184,7 +184,7 @@ async def download_highest_avaliable_resolution():
         return jsonify({"error": "Invalid lang code"}), 400
     
     try:
-      yt = YouTube(url,  use_oauth=False, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH,on_progress_callback = on_progress, po_token_verifier=fetch_po_token)
+      yt = YouTube(url,  use_oauth=AUTH, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH,on_progress_callback = on_progress, po_token_verifier=fetch_po_token)
       video_file, error_message = await asyncio.to_thread(download_content,yt)
       if not error_message:
           audio_file, error_message = await asyncio.to_thread(download_content, yt, content_type="audio")
@@ -250,7 +250,7 @@ async def download_by_resolution(resolution):
         return jsonify({"error": "Invalid lang code"}), 400
         
     try:
-      yt = YouTube(url,  use_oauth=False, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, on_progress_callback = on_progress, po_token_verifier=fetch_po_token)
+      yt = YouTube(url,  use_oauth=AUTH, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, on_progress_callback = on_progress, po_token_verifier=fetch_po_token)
       video_file, error_message = await asyncio.to_thread(download_content, yt, resolution)
       if not error_message:
           if bitrate:
@@ -297,7 +297,7 @@ async def download_highest_quality_audio():
     if not is_valid_youtube_url(url):
       return jsonify({"error": "Invalid YouTube URL."}), 400
     try:
-      yt = YouTube(url,  use_oauth=False, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, on_progress_callback = on_progress, po_token_verifier=fetch_po_token)
+      yt = YouTube(url,  use_oauth=AUTH, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, on_progress_callback = on_progress, po_token_verifier=fetch_po_token)
       audio_file, error_message = await asyncio.to_thread(download_content, yt, content_type="audio")
         
       if audio_file:
@@ -335,7 +335,7 @@ async def download_audio_by_bitrate(bitrate):
        return jsonify({"error": "Invalid request URL, input a valid bitrate for example 48kpbs fuck you"}), 400
  
     try:
-      yt = YouTube(url,  use_oauth=False, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, on_progress_callback = on_progress, po_token_verifier=fetch_po_token)
+      yt = YouTube(url,  use_oauth=AUTH, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, on_progress_callback = on_progress, po_token_verifier=fetch_po_token)
       audio_file, error_message = await asyncio.to_thread(download_content, yt, content_type="audio", bitrate=bitrate)
         
       if audio_file:
@@ -375,7 +375,7 @@ async def get_subtitles(lang):
     if not re.match(lang_code_regrex,lang):
         return jsonify({"error": "Invalid lang code"}), 400
     try:
-      yt = YouTube(url,  use_oauth=False, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, on_progress_callback = on_progress, po_token_verifier=fetch_po_token)
+      yt = YouTube(url,  use_oauth=AUTH, allow_oauth_cache=True, use_po_token=AUTH, token_file = AUTH and AUTH_FILE_PATH, on_progress_callback = on_progress, po_token_verifier=fetch_po_token)
       captions, error_message = await asyncio.to_thread(get_captions,yt,lang)
       if captions:
         del captions["path"]
