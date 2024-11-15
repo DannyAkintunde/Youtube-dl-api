@@ -140,6 +140,7 @@ def video_id(value):
 def get_info(yt):
     try:
         video_info = yt.dict()
+        print(video_info)
         video_info['video_id'] = video_id(video_info.get('view_url'))
         return video_info, None
     except Exception as e:
