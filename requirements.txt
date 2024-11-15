@@ -21,7 +21,7 @@ languagecodes==1.1.1
 MarkupSafe==2.1.5
 priority==2.0.0
 PySocks==1.7.1
-pytubefix==6.15.4
+pytubefix==8.3.2
 pytz==2024.2
 Quart==0.19.6
 requests==2.32.3
