@@ -1,5 +1,8 @@
 
 # YouTube-dl-api: YouTube Content Downloader API 🎥
+
+> Note: project is currently inactive 
+
 ! note readme is yet to be updated ⚠️
 
 A Quart-based API for downloading YouTube videos and audio, retrieving video metadata, and handling captions. This API allows you to interact with YouTube content programmatically, leveraging background tasks to manage temporary files and provide efficient downloads.
